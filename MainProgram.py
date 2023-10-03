@@ -10,7 +10,7 @@ analyzer = ImageAnalyzer()
 
 tiles = analyzer.extract_tiles(img)
 
-cv2.imshow("Image", tiles[9][1])
+cv2.imshow("Image", tiles[11][1])
 
 
 
