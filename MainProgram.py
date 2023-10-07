@@ -35,6 +35,3 @@ cv2.imwrite("ImageSharp.jpg", img_sharp)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
-
-
-
