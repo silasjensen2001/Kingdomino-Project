@@ -6,16 +6,16 @@ from ImageAnalyzer import ImageAnalyzer
 analyzer = ImageAnalyzer()
 
 path = "King Domino dataset\\Cropped and perspective corrected boards\\1.jpg"
-path2 = "ImageSharp.jpg"
+path2 = "ProcessedImages\Boards\ImageSharp.jpg"
 img = cv2.imread(path2)
-
+crop = img[212:234, 165:194]
 tiles = analyzer.extract_tiles(img)
 
-cv2.imshow("Image", tiles[11][1])
+cv2.imshow("Image", tiles[18][1])
 
 
 #Read Main and Needle Image
-img = tiles[11][1]
+img = tiles[18][1]
 
 
 
@@ -110,6 +110,31 @@ grayscaled_img_3 = grayscaled_img_3
 
 (thresh, binary_img_3) = cv2.threshold(grayscaled_img_3, 250, 255, cv2.THRESH_BINARY)
 binary_img_3 = 255-binary_img_3
+
+
+#TEMPLATE MATCHING
+cv2.imshow("crop", crop)
+"""
+assert img is not None, "file could not be read, check with os.path.exists()"
+img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+#template = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+assert template is not None, "file could not be read, check with os.path.exists()"
+w, h = template.shape[::-1]
+
+res = cv2.matchTemplate(img_gray,template,cv2.TM_CCOEFF_NORMED)
+threshold = 0.3
+loc = np.where( res >= threshold)
+for pt in zip(*loc[::-1]):
+    cv2.rectangle(img, pt, (pt[0] + w, pt[1] + h), (0,0,255), 2)
+
+cv2.imwrite('res.png',img)
+"""
+
+
+
+
+
+
 
 cv2.imshow("Thresholded BGR image", img_1)
 cv2.imshow("Thresholded HSV image", img_2)
