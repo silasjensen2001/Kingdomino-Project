@@ -6,28 +6,22 @@ from ImageAnalyzer import ImageAnalyzer
 analyzer = ImageAnalyzer()
 
 path = "King Domino dataset\\Cropped and perspective corrected boards\\1.jpg"
-path2 = "ProcessedImages\Boards\ImageSharp.jpg"
+path2 = "ProcessedImages\Boards\ImageSharp1.jpg"
 img = cv2.imread(path2)
-crop = img[212:234, 165:194]
 tiles = analyzer.extract_tiles(img)
 
-cv2.imshow("Image", tiles[18][1])
+#cv2.imshow("Image", tiles[18][1])
 
+#read main image
+img = tiles[1][1]
 
-#Read Main and Needle Image
-img = tiles[18][1]
+#crop_img = binary_img_3[14:35, 38:65] # cropped image from ImageSharp.jpg used to make the templates below
+template_image_0 = cv2.imread("ProcessedImages//Templates//Template_0.jpg", cv2.IMREAD_GRAYSCALE)
+template_image_90 = cv2.imread("ProcessedImages//Templates//Template_90.jpg", cv2.IMREAD_GRAYSCALE)
+template_image_180 = cv2.imread("ProcessedImages//Templates//Template_180.jpg", cv2.IMREAD_GRAYSCALE)
+template_image_270 = cv2.imread("ProcessedImages//Templates//Template_270.jpg", cv2.IMREAD_GRAYSCALE)
 
-
-
-kernel1 = np.array([[1,1,1,1,1],
-                    [1,1,1,1,1],
-                    [1,1,1,1,1],
-                    [1,1,1,1,1],
-                    [1,1,1,1,1]], np.uint8)
-
-kernel2 = np.array([[1,1,1],
-                    [1,1,1],
-                    [1,1,1]], np.uint8)
+template_images = [template_image_0, template_image_90, template_image_180, template_image_270]
 
 def colour_threshold_BGR(image, name: str, lower_val: list, upper_val: list):
     # set lower and upper colour limits
@@ -89,115 +83,77 @@ def colour_threshold_HSV(image, name: str, lower_val: list, upper_val: list):
     #cv2.imshow(name, final)
     return final
 
+# [Pastures  ; Wheat Fields ; Lakes     ; Mines     ; Forests   ; Swamps   ]
+# [0.32:0.77 ; 0.27:0.276  ; 0.34:0.82 ; 0.27:0.68 ; 0.36:0.76 ; 0.37:0.78 ]
+def template_matching_with_rotated_templates(original_image, rotated_templates, threshold=0.27, overlap_threshold=0.9):
+    img_1 = colour_threshold_BGR(original_image, "image 1", [0, 125, 140], [121, 230, 235])
+    img_2 = colour_threshold_HSV(original_image, "image 2", [0, 50, 0], [177, 255, 255])
+    img_3 = img_1+img_2
+    
+    #cv2.imshow("image1", img_1)
+    #cv2.imshow("image2", img_2)
+    #cv2.imshow("image3", img_3)
 
+    grayscaled_img_3 = cv2.cvtColor(img_3, cv2.COLOR_BGR2GRAY)
+    grayscaled_img_3 = grayscaled_img_3
+
+    (thresh, binary_img_3) = cv2.threshold(grayscaled_img_3, 250, 255, cv2.THRESH_BINARY)
+
+    assert binary_img_3 is not None, "file could not be read, check with os.path.exists()"
+
+    # Copy the original image as to be able to draw on it later
+    result_image = original_image.copy()
+
+    # Commence template matching with rotating templates
+    matches = []
+    num_crowns = 0
+
+    for template in rotated_templates:
+        res = cv2.matchTemplate(binary_img_3, template, cv2.TM_CCOEFF_NORMED)
+        
+        # Find matchede områder over tærskelværdien
+        loc = np.where(res >= threshold)
+        
+        for pt in zip(*loc[::-1]):
+            w, h = template.shape[::-1]
+            # Tjek om dette resultat overlapper med tidligere resultater
+            overlap = False
+            for existing_match in matches:
+                dx = pt[0] - existing_match[0]
+                dy = pt[1] - existing_match[1]
+                distance = np.sqrt(dx * dx + dy * dy)
+                if distance < max(w, h) * overlap_threshold:
+                    overlap = True
+                    break
+
+            # Only add the result if it doesn't overlap with previous results
+            if not overlap:
+                matches.append(pt)
+                num_crowns += 1
+                cv2.rectangle(result_image, (pt[0], pt[1]), (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+    
+    #print(num_crowns)
+    cv2.imshow('res.png', result_image)
+    
+    return num_crowns
+
+# MAIN
+"""
 img_1 = colour_threshold_BGR(img, "image 1", [0, 125, 140], [121, 230, 235])
 img_2 = colour_threshold_HSV(img, "image 2", [0, 50, 0], [177, 255, 255])
 
-
-grayscaled_img_2 = cv2.cvtColor(img_2, cv2.COLOR_BGR2GRAY)
-grayscaled_img_2 = 60+grayscaled_img_2
-
-(thresh, binary_img_2) = cv2.threshold(grayscaled_img_2, 60, 255, cv2.THRESH_BINARY)
-binary_img_2 = 255-binary_img_2
-
-dilation_1 = cv2.dilate(binary_img_2, kernel1, iterations=2)
-erosion_1 = cv2.erode(dilation_1, kernel2, iterations=4)
-
 img_3 = img_1+img_2
-
+cv2.imshow("image1", img_1)
+cv2.imshow("image2", img_2)
+cv2.imshow("image3", img_3)
 grayscaled_img_3 = cv2.cvtColor(img_3, cv2.COLOR_BGR2GRAY)
 grayscaled_img_3 = grayscaled_img_3
 
 (thresh, binary_img_3) = cv2.threshold(grayscaled_img_3, 250, 255, cv2.THRESH_BINARY)
-binary_img_3 = 255-binary_img_3
-
-
-#TEMPLATE MATCHING
-cv2.imshow("crop", crop)
+dilated_binary_img_3 = cv2.dilate(binary_img_3, kernel=np.ones((3,3), np.uint8), iterations=1)
 """
-assert img is not None, "file could not be read, check with os.path.exists()"
-img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-#template = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-assert template is not None, "file could not be read, check with os.path.exists()"
-w, h = template.shape[::-1]
-
-res = cv2.matchTemplate(img_gray,template,cv2.TM_CCOEFF_NORMED)
-threshold = 0.3
-loc = np.where( res >= threshold)
-for pt in zip(*loc[::-1]):
-    cv2.rectangle(img, pt, (pt[0] + w, pt[1] + h), (0,0,255), 2)
-
-cv2.imwrite('res.png',img)
-"""
-
-
-
-
-
-
-
-cv2.imshow("Thresholded BGR image", img_1)
-cv2.imshow("Thresholded HSV image", img_2)
-cv2.imshow("Thresholded HSV image 2", img_3)
-cv2.imshow("Thresholded HSV image binary", binary_img_2)
-cv2.imshow("Summed image", binary_img_3)
+#cv2.imshow("Binary image", dilated_binary_img_3)
+template_matching_with_rotated_templates(img, template_images)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
-
-
-"""
-#initialise analyzer object
-analyzer = ImageAnalyzer()
-
-tiles = analyzer.extract_tiles(img)
-
-#cv.imshow("Image", tiles[11][1])
-
-threshold = 0.39
-
-##Read Main and Needle Image
-imageMainRGB = tiles[18][1]
-imageNeedleRGB = cv2.imread('crown3.png')
-imageNeedleRGB.resize([30,24,3])
-
-print(imageNeedleRGB.shape)
-
-##Split Both into each R, G, B Channel
-imageMainR, imageMainG, imageMainB = cv2.split(imageMainRGB)
-imageNeedleR, imageNeedleG, imageNeedleB = cv2.split(imageNeedleRGB)
-
-##Matching each channel
-resultB = cv2.matchTemplate(imageMainR, imageNeedleR, cv2.TM_CCOEFF_NORMED)
-resultG = cv2.matchTemplate(imageMainG, imageNeedleG, cv2.TM_CCOEFF_NORMED)
-resultR = cv2.matchTemplate(imageMainB, imageNeedleB, cv2.TM_CCOEFF_NORMED)
-
-##Add together to get the total score
-result = resultB + resultG + resultR
-print(result)
-loc = np.where(result >= 3 * threshold)
-print("loc: ", loc)
-
-###
-assert tiles[23][1] is not None, "file could not be read, check with os.path.exists()"
-img_gray = cv2.cvtColor(tiles[23][1], cv2.COLOR_BGR2GRAY)
-template = cv2.imread('Cropped Image.jpg', cv2.IMREAD_GRAYSCALE)
-template.resize([30,24])
-assert template is not None, "file could not be read, check with os.path.exists()"
-
-res = cv2.matchTemplate(img_gray,template,cv2.TM_CCOEFF_NORMED)
-threshold = 0.39
-loc = np.where(res >= threshold)
-###
-
-w = imageNeedleRGB.shape[0]
-h = imageNeedleRGB.shape[1]
-
-#d_height = h/2
-print(d_height)
-for pt in zip(*loc[::-1]):
-    img2 = cv2.rectangle(tiles[18][1], (pt[0], int(pt[1] + d_height)), (pt[0] + w, int(pt[1] + h + d_height)), (0,0,255), 2)
-#print(pt)
-#print(loc[::-1])
-cv2.imwrite('res.png', img2)
-"""
