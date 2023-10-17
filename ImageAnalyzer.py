@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
-
+from ImageProcessor import ImageProcessor
 
 class ImageAnalyzer:
     def __init__(self) -> None:
         #[[x,y], type (1,2,3..), crowns]
         self.classification_list = [[]]
+        
 
     def extract_tiles(self, cropped_img) -> list:
         """
@@ -74,8 +75,60 @@ class ImageAnalyzer:
         return results_list, np.argmax(results_list)
  
 
-    def count_crowns(self, tile) -> int:
-        pass
+    def template_matching_with_rotated_templates(self, original_image, rotated_templates, threshold=0.37, overlap_threshold=0.9):
+        img_1 = ImageProcessor.colour_threshold_BGR(self, original_image, "image 1", [0, 125, 140], [121, 230, 235])
+        img_2 = ImageProcessor.colour_threshold_HSV(self, original_image, "image 2", [0, 50, 0], [177, 255, 255])
+        img_3 = img_1+img_2
+        
+        #cv2.imshow("image1", img_1)
+        #cv2.imshow("image2", img_2)
+        #cv2.imshow("image3", img_3)
+
+        grayscaled_img_3 = cv2.cvtColor(img_3, cv2.COLOR_BGR2GRAY)
+        grayscaled_img_3 = grayscaled_img_3
+
+        _, binary_img_3 = cv2.threshold(grayscaled_img_3, 250, 255, cv2.THRESH_BINARY)
+
+        assert binary_img_3 is not None, "file could not be read, check with os.path.exists()"
+
+        # Copy the original image as to be able to draw on it later
+        result_image = original_image.copy()
+
+        # Commence template matching with rotating templates
+        matches = []
+        num_crowns = 0
+
+        for template in rotated_templates:
+            res = cv2.matchTemplate(binary_img_3, template, cv2.TM_CCOEFF_NORMED)
+            
+            # Find matchede områder over tærskelværdien
+            loc = np.where(res >= threshold)
+            
+            for pt in zip(*loc[::-1]):
+                w, h = template.shape[::-1]
+                # Tjek om dette resultat overlapper med tidligere resultater
+                overlap = False
+                for existing_match in matches:
+                    dx = pt[0] - existing_match[0]
+                    dy = pt[1] - existing_match[1]
+                    distance = np.sqrt(dx * dx + dy * dy)
+                    if distance < max(w, h) * overlap_threshold:
+                        overlap = True
+                        break
+
+                # Only add the result if it doesn't overlap with previous results
+                if not overlap:
+                    matches.append(pt)
+                    num_crowns += 1
+                    cv2.rectangle(result_image, (pt[0], pt[1]), (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+        
+        #print(num_crowns)
+        #cv2.imshow('res.png', result_image)
+        
+        return num_crowns
+
 
     def calculate_score(self, classification_list) -> int:
         pass
+
+    

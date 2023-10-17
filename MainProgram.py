@@ -12,6 +12,16 @@ Processor = ImageProcessor()
 
 special_tiles = [13,13,13,13,23,13,13,13,23,20,13,15,23,20,13,15,23,13]
 
+#ALT MIT ROD
+#crop_img = binary_img_3[14:35, 38:65] # cropped image from ImageSharp.jpg used to make the templates below
+template_image_0 = cv2.imread("ProcessedImages//Templates//Template_0.jpg", cv2.IMREAD_GRAYSCALE)
+template_image_90 = cv2.imread("ProcessedImages//Templates//Template_90.jpg", cv2.IMREAD_GRAYSCALE)
+template_image_180 = cv2.imread("ProcessedImages//Templates//Template_180.jpg", cv2.IMREAD_GRAYSCALE)
+template_image_270 = cv2.imread("ProcessedImages//Templates//Template_270.jpg", cv2.IMREAD_GRAYSCALE)
+
+template_images = [template_image_0, template_image_90, template_image_180, template_image_270]
+
+
 for j in range(1, 50):
     path = f"King Domino dataset\\Cropped and perspective corrected boards\\{j}.jpg"
     img = cv2.imread(path)
@@ -35,8 +45,15 @@ for j in range(1, 50):
     #vis alle billeder i matplot
     for i in range(25):
         result, type_idx = Analyzer.classify_tile(tiles[i][1])
+        
+        if type_idx == 1:
+            threshold = 0.27
+        else:
+            threshold = 0.37
+        num_crowns = Analyzer.template_matching_with_rotated_templates(tiles[i][1], template_images, threshold)
+        
         plt.subplot(5,5, i+1), plt.imshow(tiles[i][1][...,::-1], 'gray') #the funny tiles indexing converts the BGR color code to RGB
-        plt.title(title_list[type_idx])
+        plt.title(title_list[type_idx]+f' {num_crowns}')
         plt.xticks([]), plt.yticks([])
 
         #Uncomment to retrieve random tiles
@@ -71,8 +88,9 @@ for j in range(1, 50):
 """
 
 
+
 #cv2.imshow("Image", tiles[2][1])
-#cv2.imwrite("ImageSharp1.jpg", img_sharp)
+#cv2.imwrite("ImageSharp47.jpg", img_sharp)
 
 
 cv2.waitKey(0)

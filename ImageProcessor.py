@@ -45,6 +45,66 @@ class ImageProcessor:
         sharp_image = cv2.filter2D(img_avg,-1,sharpen_filter)
 
         return sharp_image
+    
+    def colour_threshold_BGR(self, image, name: str, lower_val: list, upper_val: list):
+        # set lower and upper colour limits
+        temp_lower_val = np.array(lower_val)
+        temp_upper_val = np.array(upper_val)
+
+        # Threshold the HSV image to get only green colours
+        mask = cv2.inRange(image, temp_lower_val, temp_upper_val)
+
+        # apply mask to original image - this shows the green with black blackground
+        only_green = cv2.bitwise_and(image, image, mask = mask)
+
+        # create a black image with the dimensions of the input image
+        background = np.zeros(image.shape, image.dtype)
+        # invert to create a white image
+        background = cv2.bitwise_not(background)
+        # invert the mask that blocks everything except green -
+        # so now it only blocks the green area's
+        mask_inv = cv2.bitwise_not(mask)
+        # apply the inverted mask to the white image,
+        # so it now has black where the original image had green
+        masked_bg = cv2.bitwise_and(background, background, mask = mask_inv)
+        # add the 2 images together. It adds all the pixel values, 
+        # so the result is white background and the the green from the first image
+        final = cv2.add(only_green, masked_bg)
+        
+        #show image
+        #cv2.imshow(name, final)
+        return final
+
+    def colour_threshold_HSV(self, image, name: str, lower_val: list, upper_val: list):
+        hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        
+        # set lower and upper colour limits
+        temp_lower_val = np.array(lower_val)
+        temp_upper_val = np.array(upper_val)
+
+        # Threshold the HSV image to get only green colours
+        mask = cv2.inRange(hsv, temp_lower_val, temp_upper_val)
+
+        # apply mask to original image - this shows the green with black blackground
+        only_green = cv2.bitwise_and(image, image, mask = mask)
+
+        # create a black image with the dimensions of the input image
+        background = np.zeros(image.shape, image.dtype)
+        # invert to create a white image
+        background = cv2.bitwise_not(background)
+        # invert the mask that blocks everything except green -
+        # so now it only blocks the green area's
+        mask_inv = cv2.bitwise_not(mask)
+        # apply the inverted mask to the white image,
+        # so it now has black where the original image had green
+        masked_bg = cv2.bitwise_and(background, background, mask = mask_inv)
+        # add the 2 images together. It adds all the pixel values, 
+        # so the result is white background and the the green from the first image
+        final = cv2.add(only_green, masked_bg)
+        
+        #show image
+        #cv2.imshow(name, final)
+        return final
 
 
 
