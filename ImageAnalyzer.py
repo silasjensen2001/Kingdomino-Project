@@ -33,17 +33,20 @@ class ImageAnalyzer:
         2: Lakes (94-113, 146-255, 0-200)
         3: Mines (0-63, 0-160, 0-94)
         4: Forests (32-124, 0-251, 0-123)
-        5: Swamps (22-45, 0-178, 82-255) 
+        5: Swamps (22-45, 0-178, 82-255)
+        6: Table (10-21, 62-187, 0-241) 
+        7: Other
         """
 
         tile_hsv = cv2.cvtColor(tile, cv2.COLOR_BGR2HSV)
 
-        thresholds = [[[24, 62], [82, 255], [72, 255]],
-                      [[32, 43], [193, 255], [55, 255]],
-                      [[94, 113], [146, 255], [0, 200]],
+        thresholds = [[[36, 62], [82, 255], [141, 255]],
+                      [[23, 28], [170, 255], [155, 255]],
+                      [[94, 113], [146, 255], [0, 255]],
                       [[0, 63], [0, 160], [0, 94]],
-                      [[32, 124], [0, 250], [0, 123]],
-                      [[22, 45], [0, 178], [82, 255]]
+                      [[32, 124], [0, 150], [0, 196]],
+                      [[22, 31], [0, 178], [82, 255]],
+                      [[10,21], [62,187], [0,241]],
                     ]
 
         results_list = []
@@ -58,8 +61,17 @@ class ImageAnalyzer:
 
             results_list.append(result)
 
-        print(results_list)
-        return np.argmax(results_list)
+
+        #Check for neutral tiles. Too similar to swamps.
+        if np.argmax(results_list) == 5:
+            print(np.mean(tile_hsv[:,:,2]))
+            if np.mean(tile_hsv[:,:,2]) < 150:
+                return results_list, 7
+
+
+
+
+        return results_list, np.argmax(results_list)
  
 
     def count_crowns(self, tile) -> int:

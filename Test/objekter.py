@@ -4,6 +4,17 @@ import cv2
 def nothing(x): #dummy fuction
     pass
 
+# Add a "Save" button to the window
+def save_values(x):
+    if x == 1:
+        values = [cv2.getTrackbarPos("LH", 'tracking'),
+                  cv2.getTrackbarPos("LS", 'tracking'),
+                  cv2.getTrackbarPos("LV", 'tracking'),
+                  cv2.getTrackbarPos("UH", 'tracking'),
+                  cv2.getTrackbarPos("US", 'tracking'),
+                  cv2.getTrackbarPos("UV", 'tracking')]
+        print("Values saved:", values)
+
 #cap = cv2.VideoCapture(0)
 
 cv2.namedWindow('tracking')
@@ -13,9 +24,13 @@ cv2.createTrackbar("LV", "tracking", 0, 255, nothing) #Value
 cv2.createTrackbar("UH", "tracking", 255, 255, nothing) #U =  upper
 cv2.createTrackbar("US", "tracking", 255, 255, nothing)
 cv2.createTrackbar("UV", "tracking", 255, 255, nothing)
+cv2.createTrackbar("Save", "tracking", 0, 1, save_values)
+
+
+            
 
 while True:
-    frame = cv2.imread('Image4.jpg') #hvis du vil se konceptet med et billede
+    frame = cv2.imread('ProcessedImages\Boards\ImageSharp1.jpg') #hvis du vil se konceptet med et billede
     #_, frame = cap.read()
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
