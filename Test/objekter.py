@@ -30,7 +30,7 @@ cv2.createTrackbar("Save", "tracking", 0, 1, save_values)
             
 
 while True:
-    frame = cv2.imread('ProcessedImages\Boards\ImageSharp1.jpg') #hvis du vil se konceptet med et billede
+    frame = cv2.imread('ProcessedImages\Boards\ImageSharp.jpg') #hvis du vil se konceptet med et billede
     #_, frame = cap.read()
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 

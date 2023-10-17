@@ -3,6 +3,7 @@ import numpy as np
 
 
 
+
 class ImageProcessor:
     def __init__(self) -> None:
         pass

@@ -48,6 +48,8 @@ class ImageAnalyzer:
                       [[22, 31], [0, 178], [82, 255]],
                       [[10,21], [62,187], [0,241]],
                     ]
+        
+        neutral_vs_swamp_thresh = [[0, 29],  [179, 255], [0,130]]
 
         results_list = []
 
@@ -64,12 +66,15 @@ class ImageAnalyzer:
 
         #Check for neutral tiles. Too similar to swamps.
         if np.argmax(results_list) == 5:
-            print(np.mean(tile_hsv[:,:,2]))
-            if np.mean(tile_hsv[:,:,2]) < 150:
+            mask = cv2.inRange(tile_hsv, 
+                              (neutral_vs_swamp_thresh[0][0], neutral_vs_swamp_thresh[1][0], neutral_vs_swamp_thresh[2][0]),
+                                (neutral_vs_swamp_thresh[0][1], neutral_vs_swamp_thresh[1][1], neutral_vs_swamp_thresh[2][1]))
+            mask1 = mask / 255
+            if mask1.sum() < 800:
                 return results_list, 7
 
 
-
+        
 
         return results_list, np.argmax(results_list)
  

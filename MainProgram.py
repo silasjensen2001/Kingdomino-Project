@@ -35,6 +35,7 @@ for j in range(1, 50):
     #vis alle billeder i matplot
     for i in range(25):
         result, type_idx = Analyzer.classify_tile(tiles[i][1])
+
         plt.subplot(5,5, i+1), plt.imshow(tiles[i][1][...,::-1], 'gray') #the funny tiles indexing converts the BGR color code to RGB
         plt.title(title_list[type_idx])
         plt.xticks([]), plt.yticks([])
