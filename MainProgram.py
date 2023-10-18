@@ -47,10 +47,11 @@ for j in range(1, 50):
         result, type_idx = Analyzer.classify_tile(tiles[i][1])
         
         if type_idx == 1:
-            threshold = 0.27
+            threshold = 0.32
         else:
-            threshold = 0.37
+            threshold = 0.45
         num_crowns = Analyzer.template_matching_with_rotated_templates(tiles[i][1], template_images, threshold)
+
         
         plt.subplot(5,5, i+1), plt.imshow(tiles[i][1][...,::-1], 'gray') #the funny tiles indexing converts the BGR color code to RGB
         plt.title(title_list[type_idx]+f' {num_crowns}')

@@ -137,6 +137,85 @@ def template_matching_with_rotated_templates(original_image, rotated_templates, 
     
     return num_crowns
 
+
+img_sample = np.array([[0, 2, 4, 4, 4],
+                        [0, 4, 4, 4, 0],
+                        [0, 5, 7, 4, 0],
+                        [0, 5, 2, 0, 0],
+                        [4, 2, 2, 0, 1]])
+
+def grassfire(img):
+    labeled_image = np.zeros_like(img)
+    next_id = 1
+
+    for y in range(img.shape[0]):
+        for x in range(img.shape[1]):
+            if img[y, x] != 10 and labeled_image[y, x] == 0:
+                burn_queue = [(x, y)]
+                current_id = next_id
+
+                while burn_queue:
+                    current_x, current_y = burn_queue.pop()
+                    if img[current_y, current_x] == img[y, x]:
+                        labeled_image[current_y, current_x] = current_id
+                        # Check neighbors and add to the queue if they match the current value
+                        for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                            new_x, new_y = current_x + dx, current_y + dy
+                            if (0 <= new_x < img.shape[1] and 0 <= new_y < img.shape[0] and labeled_image[new_y, new_x] == 0):
+                                burn_queue.append((new_x, new_y))
+
+                next_id += 1
+
+    return labeled_image
+
+
+labeled_img = grassfire(img_sample)
+print(labeled_img)
+
+# NEDENSTÅENDE FUNKTION ER IKKE FÆRDIG ENDNU
+def count_score(input_array, info_list):
+    final_score_list = []
+    number_of_interest = 0
+
+    while number_of_interest < 25:
+        value_list = []
+        count = 0
+        for i in range(5):
+            for j in range(5):
+                number_of_interest += 1
+                if input_array[i, j] == number_of_interest:
+                    value_list.append(info_list[5*i+j][1])
+                    count += 1
+
+        val = sum(value_list)*count
+        final_score_list.append(val)
+    
+    final_score = sum(final_score_list)
+
+    return final_score
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # MAIN
 """
 img_1 = colour_threshold_BGR(img, "image 1", [0, 125, 140], [121, 230, 235])
@@ -153,7 +232,7 @@ grayscaled_img_3 = grayscaled_img_3
 dilated_binary_img_3 = cv2.dilate(binary_img_3, kernel=np.ones((3,3), np.uint8), iterations=1)
 """
 #cv2.imshow("Binary image", dilated_binary_img_3)
-template_matching_with_rotated_templates(img, template_images)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+#template_matching_with_rotated_templates(img, template_images)
+#cv2.waitKey(0)
+#cv2.destroyAllWindows()
 
