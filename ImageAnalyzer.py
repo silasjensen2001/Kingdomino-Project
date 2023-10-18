@@ -50,7 +50,7 @@ class ImageAnalyzer:
                       [[10,21], [62,187], [0,241]],
                     ]
         
-        neutral_vs_swamp_thresh = [[0, 29],  [179, 255], [0,130]]
+        neutral_vs_swamp_thresh = [[0, 35],  [0, 255], [0,80]]
 
         results_list = []
 
@@ -70,8 +70,21 @@ class ImageAnalyzer:
             mask = cv2.inRange(tile_hsv, 
                               (neutral_vs_swamp_thresh[0][0], neutral_vs_swamp_thresh[1][0], neutral_vs_swamp_thresh[2][0]),
                                 (neutral_vs_swamp_thresh[0][1], neutral_vs_swamp_thresh[1][1], neutral_vs_swamp_thresh[2][1]))
-            mask1 = mask / 255
-            if mask1.sum() < 800:
+            
+            mask = mask[10:90, 10:90]
+            
+            mask_eroded = cv2.erode(mask, np.ones((3,3), np.uint8), iterations=2)
+            mask_dilated = cv2.dilate(mask_eroded, np.ones((5,5), np.uint8), iterations=3)
+
+            #cv2.imshow("Dialted", mask_dilated)
+            #cv2.imshow("Original", cv2.cvtColor(tile_hsv, cv2.COLOR_HSV2BGR))
+
+            mask1 = mask_dilated / 255
+            #print(mask1.sum())
+            #cv2.waitKey()
+
+            
+            if mask1.sum() < 200:
                 return results_list, 7
 
 

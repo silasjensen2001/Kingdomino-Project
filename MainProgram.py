@@ -26,6 +26,7 @@ for j in range(1, 50):
     path = f"King Domino dataset\\Cropped and perspective corrected boards\\{j}.jpg"
     img = cv2.imread(path)
 
+    
     #Preprocess image
     img_equ = Processor.equalize_hist(img)
     img_sharp = Processor.sharpen_img(img_equ)

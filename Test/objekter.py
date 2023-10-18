@@ -1,5 +1,8 @@
 import numpy as np
 import cv2
+import sys
+sys.path.append('C:\\Users\\Thor9\\OneDrive - Aalborg Universitet\\Dokumenter\\AAU\\Kurser\\3-Semester\\Billedbehandling\\Kingdomino-Project')
+from ImageProcessor import ImageProcessor
 
 def nothing(x): #dummy fuction
     pass
@@ -27,12 +30,17 @@ cv2.createTrackbar("UV", "tracking", 255, 255, nothing)
 cv2.createTrackbar("Save", "tracking", 0, 1, save_values)
 
 
-            
+Processor = ImageProcessor()        
 
 while True:
-    frame = cv2.imread('ProcessedImages\Boards\ImageSharp.jpg') #hvis du vil se konceptet med et billede
+    frame = cv2.imread('King Domino dataset\Cropped and perspective corrected boards\\2.jpg') #hvis du vil se konceptet med et billede
+
+    #Preprocess image
+    img_equ = Processor.equalize_hist(frame)
+    img_sharp = Processor.sharpen_img(img_equ)
+
     #_, frame = cap.read()
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(img_sharp, cv2.COLOR_BGR2HSV)
 
     l_h = cv2.getTrackbarPos("LH", 'tracking') #får fat i værdien af vores trackbars
     l_s = cv2.getTrackbarPos("LS", 'tracking')
@@ -47,7 +55,7 @@ while True:
 
     mask= cv2.inRange(hsv, l_b, u_b) #finder ud om hsv billede har dele som ligger i intervallet angivet af l_b og u_b
 
-    res = cv2.bitwise_and(frame, frame, mask=mask)
+    res = cv2.bitwise_and(img_sharp, img_sharp, mask=mask)
 
     #cv2.imshow('frame', frame)
     cv2.imshow('mask', mask)

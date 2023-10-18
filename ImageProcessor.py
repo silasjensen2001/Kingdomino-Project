@@ -2,8 +2,6 @@ import cv2
 import numpy as np
 
 
-
-
 class ImageProcessor:
     def __init__(self) -> None:
         pass
@@ -31,10 +29,10 @@ class ImageProcessor:
                                         [2,4,2],
                                         [1,2,1]])
         #mean_filter = 1/273 * np.array([[1,4,7,4,1],
-         #                               [4,16,26,16,4],
-          #                              [7,26,41,26,7],
-           #                             [4,16,26,16,4],
-            #                            [1,4,7,4,1]])
+         #                              [4,16,26,16,4],
+          #                            [7,26,41,26,7],
+           #                          [4,16,26,16,4],
+            #                        [1,4,7,4,1]])
         
         img_avg = sharp_image = cv2.filter2D(img,-1,mean_filter)
 
@@ -106,9 +104,3 @@ class ImageProcessor:
         #show image
         #cv2.imshow(name, final)
         return final
-
-
-
-
-
-
