@@ -23,71 +23,40 @@ template_image_270 = cv2.imread("ProcessedImages//Templates//Template_270.jpg", 
 
 template_images = [template_image_0, template_image_90, template_image_180, template_image_270]
 
-def colour_threshold_BGR(image, name: str, lower_val: list, upper_val: list):
-    # set lower and upper colour limits
+def colour_threshold(image, colour: str, lower_val: list, upper_val: list):
+    if colour == "HSV":
+        img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    elif colour == "BGR":
+        img = image
+    
+    # Set the lower and upper colour limits
     temp_lower_val = np.array(lower_val)
     temp_upper_val = np.array(upper_val)
 
-    # Threshold the HSV image to get only green colours
-    mask = cv2.inRange(image, temp_lower_val, temp_upper_val)
+    # Threshold the HSV image to get the desired colours
+    mask = cv2.inRange(img, temp_lower_val, temp_upper_val)
 
-    # apply mask to original image - this shows the green with black blackground
+    # Apply the mask to the original image
     only_green = cv2.bitwise_and(image, image, mask = mask)
 
-    # create a black image with the dimensions of the input image
+    # Create a black image that has the same dimensions as the input image
     background = np.zeros(image.shape, image.dtype)
-    # invert to create a white image
+    # Invert to create a white image
     background = cv2.bitwise_not(background)
-    # invert the mask that blocks everything except green -
-    # so now it only blocks the green area's
+    # Invert the mask that blocks everything except the desired colour, which results in only blocking that desired colour
     mask_inv = cv2.bitwise_not(mask)
-    # apply the inverted mask to the white image,
-    # so it now has black where the original image had green
+    # Apply the inverted mask to the white image
     masked_bg = cv2.bitwise_and(background, background, mask = mask_inv)
-    # add the 2 images together. It adds all the pixel values, 
-    # so the result is white background and the the green from the first image
+    # Add the 2 images together
     final = cv2.add(only_green, masked_bg)
-    
-    #show image
-    #cv2.imshow(name, final)
-    return final
 
-def colour_threshold_HSV(image, name: str, lower_val: list, upper_val: list):
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    
-    # set lower and upper colour limits
-    temp_lower_val = np.array(lower_val)
-    temp_upper_val = np.array(upper_val)
-
-    # Threshold the HSV image to get only green colours
-    mask = cv2.inRange(hsv, temp_lower_val, temp_upper_val)
-
-    # apply mask to original image - this shows the green with black blackground
-    only_green = cv2.bitwise_and(image, image, mask = mask)
-
-    # create a black image with the dimensions of the input image
-    background = np.zeros(image.shape, image.dtype)
-    # invert to create a white image
-    background = cv2.bitwise_not(background)
-    # invert the mask that blocks everything except green -
-    # so now it only blocks the green area's
-    mask_inv = cv2.bitwise_not(mask)
-    # apply the inverted mask to the white image,
-    # so it now has black where the original image had green
-    masked_bg = cv2.bitwise_and(background, background, mask = mask_inv)
-    # add the 2 images together. It adds all the pixel values, 
-    # so the result is white background and the the green from the first image
-    final = cv2.add(only_green, masked_bg)
-    
-    #show image
-    #cv2.imshow(name, final)
     return final
 
 # [Pastures  ; Wheat Fields ; Lakes     ; Mines     ; Forests   ; Swamps   ]
 # [0.32:0.77 ; 0.27:0.276  ; 0.34:0.82 ; 0.27:0.68 ; 0.36:0.76 ; 0.37:0.78 ]
 def template_matching_with_rotated_templates(original_image, rotated_templates, threshold=0.27, overlap_threshold=0.9):
-    img_1 = colour_threshold_BGR(original_image, "image 1", [0, 125, 140], [121, 230, 235])
-    img_2 = colour_threshold_HSV(original_image, "image 2", [0, 50, 0], [177, 255, 255])
+    img_1 = colour_threshold(original_image, "BGR", [0, 125, 140], [121, 230, 235])
+    img_2 = colour_threshold(original_image, "HSV", [0, 50, 0], [177, 255, 255])
     img_3 = img_1+img_2
     
     #cv2.imshow("image1", img_1)
@@ -168,9 +137,9 @@ def grassfire(img):
 
     return labeled_image
 
-
-labeled_img = grassfire(img_sample)
-print(labeled_img)
+template_matching_with_rotated_templates(img, template_images)
+#labeled_img = grassfire(img_sample)
+#print(labeled_img)
 
 # NEDENSTÅENDE FUNKTION ER IKKE FÆRDIG ENDNU
 def count_score(input_array, info_list):
@@ -233,6 +202,6 @@ dilated_binary_img_3 = cv2.dilate(binary_img_3, kernel=np.ones((3,3), np.uint8),
 """
 #cv2.imshow("Binary image", dilated_binary_img_3)
 #template_matching_with_rotated_templates(img, template_images)
-#cv2.waitKey(0)
-#cv2.destroyAllWindows()
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 

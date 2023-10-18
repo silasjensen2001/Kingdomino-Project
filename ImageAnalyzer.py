@@ -94,8 +94,9 @@ class ImageAnalyzer:
  
 
     def template_matching_with_rotated_templates(self, original_image, rotated_templates, threshold=0.37, overlap_threshold=0.9):
-        img_1 = ImageProcessor.colour_threshold_BGR(self, original_image, "image 1", [0, 125, 140], [121, 230, 235])
-        img_2 = ImageProcessor.colour_threshold_HSV(self, original_image, "image 2", [0, 50, 0], [177, 255, 255])
+        # To find the crowns
+        img_1 = ImageProcessor.colour_threshold(self, original_image, "BGR", [0, 125, 140], [121, 230, 235])
+        img_2 = ImageProcessor.colour_threshold(self, original_image, "HSV", [0, 50, 0], [177, 255, 255])
         img_3 = img_1+img_2
         
         #cv2.imshow("image1", img_1)
