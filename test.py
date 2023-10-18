@@ -174,23 +174,23 @@ print(labeled_img)
 
 # NEDENSTÅENDE FUNKTION ER IKKE FÆRDIG ENDNU
 def count_score(input_array, info_list):
-    final_score_list = []
+    final_score = 0
     number_of_interest = 0
 
-    while number_of_interest < 25:
+    unique_numbers = np.max(input_array)
+
+    while number_of_interest <= unique_numbers:
         value_list = []
         count = 0
+        number_of_interest += 1
+        
         for i in range(5):
             for j in range(5):
-                number_of_interest += 1
                 if input_array[i, j] == number_of_interest:
-                    value_list.append(info_list[5*i+j][1])
-                    count += 1
+                    value_list.append(info_list[i,j])
 
-        val = sum(value_list)*count
-        final_score_list.append(val)
-    
-    final_score = sum(final_score_list)
+        val = sum(value_list)*len(value_list)
+        final_score += val
 
     return final_score
 

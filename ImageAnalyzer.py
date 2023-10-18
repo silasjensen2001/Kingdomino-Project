@@ -145,8 +145,49 @@ class ImageAnalyzer:
         
         return num_crowns
 
-
-    def calculate_score(self, classification_list) -> int:
-        pass
-
     
+    def grassfire(self, img):
+        labeled_image = np.zeros_like(img)
+        next_id = 1
+
+        for y in range(img.shape[0]):
+            for x in range(img.shape[1]):
+                if labeled_image[y, x] == 0: #img[y, x] != 10 and 
+                    burn_queue = [(x, y)]
+                    current_id = next_id
+
+                    while burn_queue:
+                        current_x, current_y = burn_queue.pop()
+                        if img[current_y, current_x] == img[y, x]:
+                            labeled_image[current_y, current_x] = current_id
+                            # Check neighbors and add to the queue if they match the current value
+                            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                                new_x, new_y = current_x + dx, current_y + dy
+                                if (0 <= new_x < img.shape[1] and 0 <= new_y < img.shape[0] and labeled_image[new_y, new_x] == 0):
+                                    burn_queue.append((new_x, new_y))
+
+                    next_id += 1
+
+        return labeled_image
+    
+
+    def count_score(self, input_array, info_list):
+        final_score = 0
+        number_of_interest = 0
+
+        unique_numbers = np.max(input_array)
+
+        while number_of_interest <= unique_numbers:
+            value_list = []
+            count = 0
+            number_of_interest += 1
+            
+            for i in range(5):
+                for j in range(5):
+                    if input_array[i, j] == number_of_interest:
+                        value_list.append(info_list[i,j])
+
+            val = sum(value_list)*len(value_list)
+            final_score += val
+
+        return final_score

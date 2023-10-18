@@ -10,7 +10,7 @@ from ImageProcessor import ImageProcessor
 Analyzer = ImageAnalyzer()
 Processor = ImageProcessor()
 
-special_tiles = [13,13,13,13,23,13,13,13,23,20,13,15,23,20,13,15,23,13]
+test_set_scores = []
 
 #ALT MIT ROD
 #crop_img = binary_img_3[14:35, 38:65] # cropped image from ImageSharp.jpg used to make the templates below
@@ -42,30 +42,32 @@ for j in range(1, 50):
     #Random integers that determines which tiles to save
     rand_ints = [random.randint(0, 24) for i in range(2)]
 
-    print(rand_ints)
+    classified_img = np.zeros((5,5))
+    info_list = np.zeros((5,5))
+
     #vis alle billeder i matplot
     for i in range(25):
         result, type_idx = Analyzer.classify_tile(tiles[i][1])
+
+        classified_img[i//5, i%5] = type_idx      
         
         if type_idx == 1:
             threshold = 0.32
         else:
             threshold = 0.45
+
         num_crowns = Analyzer.template_matching_with_rotated_templates(tiles[i][1], template_images, threshold)
+        info_list[i//5, i%5] = num_crowns
 
         
         plt.subplot(5,5, i+1), plt.imshow(tiles[i][1][...,::-1], 'gray') #the funny tiles indexing converts the BGR color code to RGB
         plt.title(title_list[type_idx]+f' {num_crowns}')
         plt.xticks([]), plt.yticks([])
 
-        #Uncomment to retrieve random tiles
-        #if i in rand_ints:
-        #   cv2.imwrite(f"ProcessedImages\\Tiles\\Mixed\\Tile{j}_{i}.jpg", tiles[i][1])
+    img_blobs = Analyzer.grassfire(classified_img)
+    final_score = Analyzer.count_score(img_blobs, info_list)
 
-        #Uncomment to retrieve neutral tiles
-        #if i+1 == special_tiles[j]:
-        #   cv2.imwrite("ProcessedImages\\Tiles\\Neutral\\Tile{}.jpg".format(j), tiles[i][1])
-
+    print(final_score)
     
     # set the spacing between subplots
     plt.subplots_adjust(left=0.1,
@@ -76,23 +78,6 @@ for j in range(1, 50):
                         hspace=0.5)
     
     plt.show()
-
-"""
-    for i in range(9):
-        result, type_idx = Analyzer.classify_tile(tiles[i+16][1])
-        plt.subplot(4,4, i+1), plt.imshow(tiles[i+16][1][...,::-1], 'gray')
-        plt.title(title_list[type_idx])
-        plt.xticks([]), plt.yticks([])
-
-        #cv2.imwrite("ProcessedImages\\Boards\\Tile{}.jpg".format(i), tiles[i][1])
-
-    plt.show()
-"""
-
-
-
-#cv2.imshow("Image", tiles[2][1])
-#cv2.imwrite("ImageSharp47.jpg", img_sharp)
 
 
 cv2.waitKey(0)
