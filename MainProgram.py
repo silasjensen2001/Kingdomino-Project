@@ -10,10 +10,10 @@ from ImageProcessor import ImageProcessor
 Analyzer = ImageAnalyzer()
 Processor = ImageProcessor()
 
-test_set_scores = []
+test_set_scores = [66, 33, 60, 33, 22, 44, 66, 38, 51, 48, 124, 44, 65, 42, 43]
 
-#ALT MIT ROD
-#crop_img = binary_img_3[14:35, 38:65] # cropped image from ImageSharp.jpg used to make the templates below
+#Read images for template matching
+#crop_img = binary_img_3[14:35, 38:65] # cropped image from ImageSharp.jpg used to make the templates below (maybe tile 18?)
 template_image_0 = cv2.imread("ProcessedImages//Templates//Template_0.jpg", cv2.IMREAD_GRAYSCALE)
 template_image_90 = cv2.imread("ProcessedImages//Templates//Template_90.jpg", cv2.IMREAD_GRAYSCALE)
 template_image_180 = cv2.imread("ProcessedImages//Templates//Template_180.jpg", cv2.IMREAD_GRAYSCALE)
@@ -22,8 +22,10 @@ template_image_270 = cv2.imread("ProcessedImages//Templates//Template_270.jpg", 
 template_images = [template_image_0, template_image_90, template_image_180, template_image_270]
 
 
-for j in range(1, 50):
-    path = f"King Domino dataset\\Cropped and perspective corrected boards\\{j}.jpg"
+#For loop running through the test set and calculating the total score of each board
+for j in range(15):
+    path = f"King Domino dataset\TestSet\Img{j}.jpg"
+    #path = f"King Domino dataset\Cropped and perspective corrected boards\{j+15}.jpg"
     img = cv2.imread(path)
 
     
@@ -38,6 +40,7 @@ for j in range(1, 50):
     tiles = Analyzer.extract_tiles(img_sharp)
 
     title_list = ["Pastures", "Wheat", "Lakes", "Mines", "Forests", "Swamps", "Table", "Other"]
+    #title_list = ["Pas", "Wht", "Lks", "Mns", "Fsts", "Swps", "Tble", "Othr"]
 
     #Random integers that determines which tiles to save
     rand_ints = [random.randint(0, 24) for i in range(2)]
@@ -48,6 +51,8 @@ for j in range(1, 50):
     #vis alle billeder i matplot
     for i in range(25):
         result, type_idx = Analyzer.classify_tile(tiles[i][1])
+
+        #cv2.imwrite(f'King Domino dataset\Tiles\Tile{i+25}.jpg', tiles[i][1])
 
         classified_img[i//5, i%5] = type_idx      
         
@@ -61,20 +66,22 @@ for j in range(1, 50):
 
         
         plt.subplot(5,5, i+1), plt.imshow(tiles[i][1][...,::-1], 'gray') #the funny tiles indexing converts the BGR color code to RGB
-        plt.title(title_list[type_idx]+f' {num_crowns}')
+        plt.title(title_list[type_idx]+f' {num_crowns}') #+f' {round(max(result),2)}')
         plt.xticks([]), plt.yticks([])
 
     img_blobs = Analyzer.grassfire(classified_img)
     final_score = Analyzer.count_score(img_blobs, info_list)
 
-    print(final_score)
+    print(f"Estimated score: {final_score}\nTruth score: {test_set_scores[j]}")
+    print()
+
     
     # set the spacing between subplots
     plt.subplots_adjust(left=0.1,
                         bottom=0.1, 
                         right=0.9, 
                         top=0.9, 
-                        wspace=0.05, 
+                        wspace=0.15, 
                         hspace=0.5)
     
     plt.show()

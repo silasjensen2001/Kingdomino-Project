@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from ImageProcessor import ImageProcessor
+from matplotlib import pyplot as plt
 
 class ImageAnalyzer:
     def __init__(self) -> None:
@@ -41,20 +42,31 @@ class ImageAnalyzer:
 
         tile_hsv = cv2.cvtColor(tile, cv2.COLOR_BGR2HSV)
 
-        thresholds = [[[36, 62], [82, 255], [141, 255]],
+        thresholds = [[[36, 62], [98, 255], [125, 255]],
                       [[23, 28], [170, 255], [155, 255]],
                       [[94, 113], [146, 255], [0, 255]],
-                      [[0, 63], [0, 160], [0, 94]],
-                      [[32, 124], [0, 150], [0, 196]],
-                      [[22, 31], [0, 178], [82, 255]],
-                      [[10,21], [62,187], [0,241]],
+                      [[0, 255], [0, 150], [0, 50]], #[[0, 63], [0, 160], [0, 94]],
+                      [[32, 124], [0, 150], [0, 123]], #[[32, 124], [0, 150], [0, 196]]
+                      [[15, 31], [0, 178], [82, 255]],
+                      [[10,21], [62,187], [0,241]],  #
+                      [[15, 31], [0, 178], [82, 255]]
                     ]
         
+        templates = [["Pasture1.jpg", "Pasture2.jpg"],
+                     [],
+                     [],
+                     ["Mine1.jpg", "Mine2.jpg", "Mine3.jpg"],
+                     ["Forest1.jpg"],
+                     ["Swamp1.jpg"],
+                     [],
+                     ["Neutral1.jpg", "Neutral2.jpg", "Neutral3.jpg", "Neutral4.jpg"]]
+        
         neutral_vs_swamp_thresh = [[0, 35],  [0, 255], [0,80]]
+        forest_vs_mine_thresh =  [[10,33], [24,255], [150,255]]
 
         results_list = []
 
-        for thresh in thresholds:
+        for i, thresh in enumerate(thresholds):
             mask = cv2.inRange(tile_hsv, 
                               (thresh[0][0], thresh[1][0], thresh[2][0]),
                                 (thresh[0][1], thresh[1][1], thresh[2][1]))
@@ -62,11 +74,43 @@ class ImageAnalyzer:
             mask1 = mask / 255
             result = mask1.sum() / mask1.size
 
+            tile_gray = cv2.cvtColor(tile, cv2.COLOR_BGR2GRAY)
+            for j in range(len(templates[i])):
+                #print(i)
+                template = cv2.imread(f"ProcessedImages\Templates\TileTemplates\\{templates[i][j]}")
+                template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+
+                for k in range(4):
+                    template = cv2.rotate(template, cv2.ROTATE_90_CLOCKWISE)
+
+                    res = cv2.matchTemplate(tile_gray, template, cv2.TM_CCOEFF_NORMED)
+                    res = res*255
+
+                    _, res_thresh = cv2.threshold(res, 150, 255, cv2.THRESH_BINARY)
+
+                    res_thresh /= 255
+
+                    if res_thresh.sum() > 0:
+                        result += 1
+
+                    #cv2.imshow("org", tile_gray)
+                    #cv2.imshow("template", template)
+                    #cv2.imshow("thresh", res_thresh)
+                    #cv2.waitKey(0)
+                    #cv2.destroyAllWindows()
+
+                    #result += 
+
+
+
             results_list.append(result)
 
 
         #Check for neutral tiles. Too similar to swamps.
         if np.argmax(results_list) == 5:
+            if max(results_list) < 0.3:
+                return results_list, 7
+            
             mask = cv2.inRange(tile_hsv, 
                               (neutral_vs_swamp_thresh[0][0], neutral_vs_swamp_thresh[1][0], neutral_vs_swamp_thresh[2][0]),
                                 (neutral_vs_swamp_thresh[0][1], neutral_vs_swamp_thresh[1][1], neutral_vs_swamp_thresh[2][1]))
@@ -76,16 +120,52 @@ class ImageAnalyzer:
             mask_eroded = cv2.erode(mask, np.ones((3,3), np.uint8), iterations=2)
             mask_dilated = cv2.dilate(mask_eroded, np.ones((5,5), np.uint8), iterations=3)
 
-            #cv2.imshow("Dialted", mask_dilated)
-            #cv2.imshow("Original", cv2.cvtColor(tile_hsv, cv2.COLOR_HSV2BGR))
-
             mask1 = mask_dilated / 255
             #print(mask1.sum())
             #cv2.waitKey()
 
             
             if mask1.sum() < 200:
+                mask = cv2.inRange(tile_hsv, 
+                            (forest_vs_mine_thresh[0][0], forest_vs_mine_thresh[1][0], forest_vs_mine_thresh[2][0]),
+                                (forest_vs_mine_thresh[0][1], forest_vs_mine_thresh[1][1], forest_vs_mine_thresh[2][1]))
+            
+                mask = mask[10:90, 10:90]
+                
+                mask_eroded = cv2.erode(mask, np.ones((3,3), np.uint8), iterations=2)
+                mask_dilated = cv2.dilate(mask_eroded, np.ones((5,5), np.uint8), iterations=2)
+
+                mask1 = mask_dilated / 255
+
+                if mask1.sum() < 700:
+                    return results_list, 7
+                else:
+                    return results_list, 5
+                
+        if np.argmax(results_list) == 3:
+            if max(results_list) < 1:
                 return results_list, 7
+            else:
+                return results_list, 3
+
+        """    
+        elif np.argmax(results_list) in [3,4]:
+            mask = cv2.inRange(tile_hsv, 
+                            (forest_vs_mine_thresh[0][0], forest_vs_mine_thresh[1][0], forest_vs_mine_thresh[2][0]),
+                                (forest_vs_mine_thresh[0][1], forest_vs_mine_thresh[1][1], forest_vs_mine_thresh[2][1]))
+            
+            mask = mask[10:90, 10:90]
+            
+            mask_eroded = cv2.erode(mask, np.ones((3,3), np.uint8), iterations=2)
+            mask_dilated = cv2.dilate(mask_eroded, np.ones((5,5), np.uint8), iterations=2)
+
+            mask1 = mask_dilated / 255
+        
+            if mask1.sum() < 750:
+                return results_list, 4
+            else:
+                return results_list, 3
+        """
 
 
         
@@ -95,8 +175,8 @@ class ImageAnalyzer:
 
     def template_matching_with_rotated_templates(self, original_image, rotated_templates, threshold=0.37, overlap_threshold=0.9):
         # To find the crowns
-        img_1 = ImageProcessor.colour_threshold(self, original_image, "BGR", [0, 125, 140], [121, 230, 235])
-        img_2 = ImageProcessor.colour_threshold(self, original_image, "HSV", [0, 50, 0], [177, 255, 255])
+        img_1 = ImageProcessor.colour_threshold(original_image, "BGR", [0, 125, 140], [121, 230, 235])
+        img_2 = ImageProcessor.colour_threshold(original_image, "HSV", [0, 50, 0], [177, 255, 255])
         img_3 = img_1+img_2
         
         #cv2.imshow("image1", img_1)
