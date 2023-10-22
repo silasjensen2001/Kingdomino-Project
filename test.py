@@ -13,7 +13,7 @@ tiles = analyzer.extract_tiles(img)
 #cv2.imshow("Image", tiles[18][1])
 
 #read main image
-img = tiles[1][1]
+img = tiles[4][1]
 
 #crop_img = binary_img_3[14:35, 38:65] # cropped image from ImageSharp.jpg used to make the templates below
 template_image_0 = cv2.imread("ProcessedImages//Templates//Template_0.jpg", cv2.IMREAD_GRAYSCALE)
@@ -54,22 +54,25 @@ def colour_threshold(image, colour: str, lower_val: list, upper_val: list):
 
 # [Pastures  ; Wheat Fields ; Lakes     ; Mines     ; Forests   ; Swamps   ]
 # [0.32:0.77 ; 0.27:0.276  ; 0.34:0.82 ; 0.27:0.68 ; 0.36:0.76 ; 0.37:0.78 ]
-def template_matching_with_rotated_templates(original_image, rotated_templates, threshold=0.27, overlap_threshold=0.9):
-    img_1 = colour_threshold(original_image, "BGR", [0, 125, 140], [121, 230, 235])
+def template_matching_with_rotated_templates(original_image, rotated_templates, threshold=0.37, overlap_threshold=0.9):
+    #img_1 = colour_threshold(original_image, "BGR", [0, 125, 140], [121, 230, 235])
     img_2 = colour_threshold(original_image, "HSV", [0, 50, 0], [177, 255, 255])
-    img_3 = img_1+img_2
-    
+    #img_3 = img_1+img_2
+    cv2.imshow("original image", original_image)
     #cv2.imshow("image1", img_1)
-    #cv2.imshow("image2", img_2)
+    cv2.imshow("image2", img_2)
     #cv2.imshow("image3", img_3)
 
-    grayscaled_img_3 = cv2.cvtColor(img_3, cv2.COLOR_BGR2GRAY)
-    grayscaled_img_3 = grayscaled_img_3
-
-    (thresh, binary_img_3) = cv2.threshold(grayscaled_img_3, 250, 255, cv2.THRESH_BINARY)
-
-    assert binary_img_3 is not None, "file could not be read, check with os.path.exists()"
-
+    grayscaled_img = cv2.cvtColor(img_2, cv2.COLOR_BGR2GRAY)
+    #grayscaled_img_3 = cv2.cvtColor(img_3, cv2.COLOR_BGR2GRAY)
+    #grayscaled_img_3 = grayscaled_img_3
+    cv2.imshow("image gray", grayscaled_img)
+    (thresh, binary_img) = cv2.threshold(grayscaled_img, 250, 255, cv2.THRESH_BINARY)
+    #cv2.imshow("image gray 3", grayscaled_img_3)
+    #(thresh, binary_img_3) = cv2.threshold(grayscaled_img_3, 150, 255, cv2.THRESH_BINARY)
+   # assert binary_img_3 is not None, "file could not be read, check with os.path.exists()"
+    cv2.imshow("Binary image", binary_img)
+    #cv2.imshow("Binary image 3", binary_img_3)
     # Copy the original image as to be able to draw on it later
     result_image = original_image.copy()
 
@@ -78,7 +81,7 @@ def template_matching_with_rotated_templates(original_image, rotated_templates, 
     num_crowns = 0
 
     for template in rotated_templates:
-        res = cv2.matchTemplate(binary_img_3, template, cv2.TM_CCOEFF_NORMED)
+        res = cv2.matchTemplate(binary_img, template, cv2.TM_CCOEFF_NORMED)
         
         # Find matchede områder over tærskelværdien
         loc = np.where(res >= threshold)
@@ -107,7 +110,7 @@ def template_matching_with_rotated_templates(original_image, rotated_templates, 
     return num_crowns
 
 
-img_sample = np.array([[0, 2, 4, 4, 4],
+img_sample = np.array([ [0, 2, 4, 4, 4],
                         [0, 4, 4, 4, 0],
                         [0, 5, 7, 4, 0],
                         [0, 5, 2, 0, 0],
@@ -138,6 +141,8 @@ def grassfire(img):
     return labeled_image
 
 template_matching_with_rotated_templates(img, template_images)
+print(img_sample)
+print()
 #labeled_img = grassfire(img_sample)
 #print(labeled_img)
 
@@ -201,7 +206,7 @@ grayscaled_img_3 = grayscaled_img_3
 dilated_binary_img_3 = cv2.dilate(binary_img_3, kernel=np.ones((3,3), np.uint8), iterations=1)
 """
 #cv2.imshow("Binary image", dilated_binary_img_3)
-#template_matching_with_rotated_templates(img, template_images)
+template_matching_with_rotated_templates(img, template_images)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 

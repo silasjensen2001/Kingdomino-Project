@@ -95,20 +95,18 @@ class ImageAnalyzer:
 
     def template_matching_with_rotated_templates(self, original_image, rotated_templates, threshold=0.37, overlap_threshold=0.9):
         # To find the crowns
-        img_1 = ImageProcessor.colour_threshold(self, original_image, "BGR", [0, 125, 140], [121, 230, 235])
-        img_2 = ImageProcessor.colour_threshold(self, original_image, "HSV", [0, 50, 0], [177, 255, 255])
-        img_3 = img_1+img_2
+        img_1 = ImageProcessor.colour_threshold(original_image, "HSV", [0, 50, 0], [177, 255, 255])
+        #img_2 = ImageProcessor.colour_threshold(self, original_image, "BGR", [0, 125, 140], [121, 230, 235])
+        #img_3 = img_1+img_2
         
         #cv2.imshow("image1", img_1)
         #cv2.imshow("image2", img_2)
         #cv2.imshow("image3", img_3)
+        grayscaled_img_1 = cv2.cvtColor(img_1, cv2.COLOR_BGR2GRAY)
+        #grayscaled_img_3 = cv2.cvtColor(img_3, cv2.COLOR_BGR2GRAY)
 
-        grayscaled_img_3 = cv2.cvtColor(img_3, cv2.COLOR_BGR2GRAY)
-        grayscaled_img_3 = grayscaled_img_3
-
-        _, binary_img_3 = cv2.threshold(grayscaled_img_3, 250, 255, cv2.THRESH_BINARY)
-
-        assert binary_img_3 is not None, "file could not be read, check with os.path.exists()"
+        _, binary_img_1 = cv2.threshold(grayscaled_img_1, 250, 255, cv2.THRESH_BINARY)
+        #_, binary_img_3 = cv2.threshold(grayscaled_img_3, 250, 255, cv2.THRESH_BINARY)
 
         # Copy the original image as to be able to draw on it later
         result_image = original_image.copy()
@@ -118,7 +116,7 @@ class ImageAnalyzer:
         num_crowns = 0
 
         for template in rotated_templates:
-            res = cv2.matchTemplate(binary_img_3, template, cv2.TM_CCOEFF_NORMED)
+            res = cv2.matchTemplate(binary_img_1, template, cv2.TM_CCOEFF_NORMED)
             
             # Find matchede områder over tærskelværdien
             loc = np.where(res >= threshold)
